@@ -32,7 +32,7 @@
 % \assignmenttype{}
 
 % Vul de volledige namen van alle auteurs in en de corresponderende UvAnetID's.
-% \authors{}
+\authors{Jari Andersen}
 % \uvanetids{}
 
 % Vul de naam van je tutor, begeleider (mentor), of docent / vakcoördinator in.
@@ -122,10 +122,12 @@ For StretchSense, Pose Matching is also used. On their website, there is a descr
     \item Hand palms must point directly downwards and be parallel to the ground.
     \item Fingers must be extended, parallel to each other, and aligned along an axis.
     \item Thumbs must be perpendicular to the other fingers, pointing along an axis.
-    \item The thumbnail must point towards the body.
+    \item The thumbnail must point towards the body (not always the case).
 \end{enumerate}
 
 Sometimes, even after a perfect Pose, the retarget may still produce undesirable results. This is because the target skeleton is different from the source skeleton (different bone lengths and other proportions). To ensure better results, you can adjust the pose (for example, giving pre-rotations to certain bones).
+
+After a meeting with StretchSense we received extra pointers regarding good thumb retargeting. Instead of pointing the thumbnail towards the body, we can try to rotate it in the range of towards the body and fully upwards.
 
 
 \subsubsection{Exporting and notes on coordinate systems}
@@ -148,17 +150,25 @@ In Blender, we encountered such a problem when trying to retarget to a ReadyPlay
     \label{fig:blenderSettings}
 \end{figure}
 
+StretchSense has notified us that the coordinate system of Hand Engine is the same as Unreal's coordinate system. In addition, using a good primary bone axis in the export out of Blender is also important. If u see the retarget working in the correct directions, but the mesh of each part are turning in the wrong direction, then you are not using correct bone axis.
 
 
 \subsection{StretchSense retarget template}
-StretchSense will ultimately control the fingers on the target avatar. For this, the skeleton of StretchSense hands needs to be retargeted onto the hands of the avatar. We create this retarget under the \textit{Tools $>$ Remapping} tab. Select the target avatar FBX file to retarget to, and indicate which bones correspond to each other for all "bones". After saving this, we can select the remap for both hands.
+StretchSense will ultimately control the fingers on the target avatar. For this, the skeleton of StretchSense hands needs to be retargeted onto the hands of the avatar. We create this retarget under the \textit{Tools $>$ Remapping} tab. Select the target avatar FBX file to retarget to, and indicate which bones correspond to each other for all "bones". After saving this, we can select the remap for both hands. A supporting image to reference is Figure \ref{fig:sslabels}.
 
 Some tips:
 \begin{itemize}
-    \item Not all bones need to be retargeted (sometimes leaf bones don't do anything).
+    \item Not all bones need to be retargeted (sometimes leaf bones don't do anything).\\Important to note however, if we don't use the metacarpals we won't be able to mimic cupping motions.
     \item The 1, 2, and 3, hand bones for the HE hands, correspond to the actual finger bones. 0 is for the metacarpal.
     \item Don't forget to set the correct hands. After reusing a template the hands will be reset.
 \end{itemize}
+
+\begin{figure}
+    \centering
+    \includegraphics[height=0.6\textheight]{imgs/StretchSenseMapping.png}
+    \caption{The bone labeling for the StretchSense hands}
+    \label{fig:sslabels}
+\end{figure}
 
 \subsection{Calibrating StretchSense}
 A lot of testing is still needed to figure out what works best.
@@ -217,6 +227,8 @@ In Unreal Engine, we will receive and play all Live Link streams on an avatar. B
 \subsection{Receiving all Live Link streams in Unreal Engine}
 In the ``Window $>$ Virtual Production $>$ Live Link" tab, we can receive all Live Link streams. Only the stream from the iPhone is automatically added. To add Vicon and the StretchSense gloves, you add a "Source" at the top left. If the plugins are installed correctly, Vicon will appear as "Vicon Data Stream Source," and StretchSense will appear as "Mocap Pro Glove." The gloves come in on separate ports, so don't forget to add both.
 
+In addition, for debugging and developing purposes, we can use different views when the data is being streamed to inspect the data (see Figure \ref{fig:livelinkoptions}).
+
 \subsection{Combining StretchSense and Vicon}
 Live Link currently supports an "ARKit Face subject" simultaneously with a "Live Link Body subject" in the Metahuman blueprint. However, when we fill in the Vicon system for the "body," the original animation blueprint for the Metahuman is no longer used. StretchSense's instructions for getting the hands working require modifying that blueprint. To get both working simultaneously, we will also add Vicon's stream to the blueprint. Find the blueprint of the body (these will have names related to the chosen Metahuman's proportion, something like "m\_tal\_nrw\_animbp"). The following needs to be adjusted here:
 \begin{enumerate}
@@ -241,6 +253,17 @@ Note that we use the same method for applying both streams for other avatars.
 \vspace*{\fill}
 \end{landscape}
 
+\subsection{Gaining control over StretchSense data}
+In certain scenarios, using the Live Link data as input is not enough for the output. For example, adding pre-rotations, pre-translations, using a single bone to drive multiple bones, etc. In order to facilitate this, we catch the data in the event graph, and alter it in the anim graph. We show how we do this in Figure \ref{fig:ssPrerot}. And we show how we apply this onto an animation in Figure \ref{animgraphssLLF}. 
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=1\textwidth]{imgs/exampleaddingpre-rotation.png}
+    \caption{How to catch the StretchSense data and alter it}
+    \label{fig:ssPrerot}
+\end{figure}
+
+
+
 \subsection{Live Link Face on the Metahuman}
 In the ``BP\_[Metahuman name]" blueprint of the Metahuman, under ``BP\_[Metahuman name]" in the details tab, there is a Live Link section. Here, you choose the stream from the iPhone for "ARKit Face Subj" and enable the "Use ARKit Face" boolean.
 
@@ -261,11 +284,17 @@ In our workflow, we rely on the Live Link Face application to transmit blendshap
 
 To address this, we recognized the need for greater control over the blendshape data we receive. By accessing the "View Options" tab within the Live Link plugin interface (see Figure \ref{fig:livelinkoptions}), we can inspect the incoming data streams.
 
-To exert finer control over this data, we've implemented a blueprint solution. Initially, we remap the received blendshape data to correspond correctly with our target blendshapes, as documented in the following url: \url{https://docs.unrealengine.com/4.27/en-US/API/Plugins/LiveLink/ULiveLinkRemapAsset/}. Subsequently, we fine-tune the blendshape values by applying specific multipliers. For example, reducing the intensity of the smile blendshape by 50\% results in a more natural expression, eliminating the uncanny valley effect.
-In addition, this method lets us drive multiple blendshapes with a single blendshape. For example, for the readyplayerme avatar, the lower jaw and teeth have seperate blendshapes. By letting the jaw drive the teeth as well, we have a more realistic setup.
+To exert finer control over this data, we've implemented a C++ and blueprint solution. Initially, we define a remap for the received blendshape data to correspond correctly with our target blendshapes (Figure \ref{fig:datatablesnippet}). This remap structure is defined in C++. Subsequently, we use a blueprint to loop over every value, find the source blendshape value and multiply this by the weight from the datatable. An example of using this weight: reducing the intensity of the smile blendshape by 50\% results in a more natural expression, eliminating the uncanny valley effect.
+In addition, this method lets us drive multiple blendshapes with a single blendshape. For example, for the readyplayerme avatar, the lower jaw and teeth have separate blendshapes. By letting the jaw drive the teeth as well, we have a more realistic setup.
 
-To facilitate this process, we store these modified blendshapes in a map in the event graph, which we then apply within the anim graph of the blueprint. This application is achieved using the "Modify Curve" node within the anim graph. The reason why we do this in the anim graph with the modify curve node instead of in the event graph with the "Set morph target" node is because the take recorder doesn't spot the changing values from the event graph.
+To facilitate this process, we store these modified blendshapes in a final map in the event graph (target blendshape to value), which we then apply within the anim graph of the blueprint. This application is achieved using the "Modify Curve" node within the anim graph. The reason why we do this in the anim graph with the modify curve node instead of in the event graph with the "Set morph target" node is because the take recorder doesn't spot the changing values from the event graph.
 
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=\textwidth]{imgs/blendshapeRemapSnippet.png}
+    \caption{A datatable showcasing that a source blendshape is going to drive blendshapes with weights.}
+    \label{fig:datatablesnippet}
+\end{figure}
 
 
 \begin{figure}[hbt!]
@@ -275,8 +304,17 @@ To facilitate this process, we store these modified blendshapes in a map in the 
     \label{fig:livelinkoptions}
 \end{figure}
 
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=1\textwidth]{imgs/ssAndLLFAnimGraph.png}
+    \caption{An Anim Graph, showcasing how we use the created maps to play on an animations.}
+    \label{fig:animgraphssLLF}
+\end{figure}
+
+
+
 \subsection{Recording with the take-recorder}
-\todo{Add blueprint info and additions we made from the signbank project}
+\todo{Add blueprint/py info and additions we made from the signbank project}
 
 %-------------------------------------------------------------------------------
 %	REFERENTIES

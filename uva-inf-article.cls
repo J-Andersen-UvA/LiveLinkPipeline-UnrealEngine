@@ -237,7 +237,9 @@
 	{ \huge \bfseries \@title}\\[0.3cm]
 	\andreasline \\[0.2cm]
 	{\large \@date  \\[0.4cm]}
-
+        \foreach \index in {1, ..., \value{authorcount}} {%
+                {\getprefix{author\index}\\ {\small \getprefix{uva\index}\\[0.2cm]}}
+            }
 	% \begin{minipage}{0.4\textwidth}
 	% 	\begin{flushleft}
 	% 		\emph{\ifnum\value{authorcount}>1\relax
