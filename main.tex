@@ -312,6 +312,30 @@ To facilitate this process, we store these modified blendshapes in a final map i
 \end{figure}
 
 
+\subsubsection{CSV blendshapes}
+In certain scenarios, it becomes necessary to record blendshapes data and utilize it for animating avatars at a later stage. While the conventional method involves streaming blendshapes through the Live Link Face application, there are instances where recording blendshapes as a CSV file is preferred.
+
+How to import the CSV files into UE:
+\begin{enumerate}
+    \item Ensure that Unreal Engine 5.1 or later is installed on your system.
+    \item Install the "LiveLinkFaceImporter" plugin in Unreal Engine via the Plugin Manager.
+    \item Drag and drop the CSV file into the Content Browser. This action triggers the file to appear as a level sequence in Unreal Engine.
+\end{enumerate}
+
+Using the CSV blendshape data:
+\begin{enumerate}
+    \item Scrub through the timeline of the level sequence.
+    \item As the timeline is scrubbed, a new stream is automatically opened in the Live Link tab of Unreal Engine (see Figure \ref{fig:csvBlendshapes}).
+    \item The blendshape data is now accessible as a Live Link stream within Unreal Engine.
+\end{enumerate}
+
+Important to note is that the timecode is preserved in the CSV and in the level sequence, meaning that we can use the level sequence itself in other sequences. This enables us to combine recorded animations with the same timecodes together (such as body animations).
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=\textwidth]{imgs/csvblendshapes.png}
+    \caption{Locating the CSV blendshape stream}
+    \label{fig:csvBlendshapes}
+\end{figure}
 
 \subsection{Recording with the take-recorder}
 \todo{Add blueprint/py info and additions we made from the signbank project}
