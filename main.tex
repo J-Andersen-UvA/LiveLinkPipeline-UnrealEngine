@@ -57,7 +57,8 @@
 
 \begin{document}
 \maketitle
-
+\tableofcontents
+\newpage
 %-------------------------------------------------------------------------------
 %	INHOUDSOPGAVE EN ABSTRACT
 %-------------------------------------------------------------------------------
@@ -141,7 +142,7 @@ Because of this difference in the choice of up axis, when importing assets (such
 When importing into UE, we can give a pre-rotation to the FBX. This can help orient the avatar correctly before inputting it in in UE.
 Regardless, we would prefer the export of a skeleton to be correct.
 
-In Blender, we encountered such a problem when trying to retarget to a ReadyPlayerMe avatar. The export settings that helped us at that time are displayed in figure
+In Blender, we encountered such a problem when trying to retarget to a ReadyPlayerMe avatar. The export settings that helped us at that time are displayed in figure \todo{Use space transform should be off, x forward, z up}
 \ref{fig:blenderSettings}.
 \begin{figure}
     \centering
@@ -339,6 +340,19 @@ Important to note is that the timecode is preserved in the CSV and in the level 
 
 \subsection{Recording with the take-recorder}
 \todo{Add blueprint/py info and additions we made from the signbank project}
+
+\section{More problems}
+In our experiences using this pipeline, we encountered issues that might be too general or touch on multiple areas of the pipeline. These issues will be discussed in this section.
+
+\subsection{Eye pop out}
+We assigned an actor to a calibration made in a previous recording day. The markers were on the same suit and not moved. The calibration also had a retarget onto an RPM avatar. But for some reason the eyes were popping out of the avatar's sockets (see figure \ref{fig:eyepopout}). This is due to the ``eye bones". Some avatars have these bones in order to control the orientation of the eyes in the same manner we would control other bones in the avatar. We can fix this by redoing the retarget in Shogun Post.
+
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=\textwidth]{imgs/eye-pop-out.png}
+    \caption{The eyes popping out of an avatar}
+    \label{fig:eyepopout}
+\end{figure}
 
 %-------------------------------------------------------------------------------
 %	REFERENTIES
