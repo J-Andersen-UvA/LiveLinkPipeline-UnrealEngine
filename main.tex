@@ -96,6 +96,91 @@ In the remainder of this report, I strive to describe the pipeline. I will skip 
 
 
 
+\section{Quick start guide}
+\begin{enumerate}
+    \item Run the letsrecord.bat
+    \begin{itemize}
+        \item Make sure shogun live and post are properly opened. All pop ups should be cleared
+    \end{itemize}
+    \item Calibrate Vicon Shogun Live
+    \item Set recording folder in Shogun Live
+    \item Add glassesguyrecord to the take recorder in UE
+    \item Fix 'r' handform\\
+    \begin{itemize}
+        \item Open the mcp take in Shogun Post
+        \item Run the ``fingerConstraint" HSL script using the script editor (set the name before running)
+        \item Update constraint offset
+        \item Solve
+        \item Save new solving skeleton and apply in Shogun Live
+    \end{itemize}
+    \item Retarget onto glassesguy\\Quick retarget:
+    \begin{itemize}
+        \item Open mcp recording of your now calibrated actor (see figure \ref{fig:mcp})
+        \item Open a premade retarget setup in the Subject Setup window (see figure \ref{fig:premadeRetarget}), we use RPM.vsr normally
+        \item Go into ``Map Mode"
+        \item Click align skeletons
+        \item Click update offsets
+        \item Exit Map Mode
+        \item Save the new retarget
+        \item In Shogun Live, in the tracking tab select your actor. Then in properties select the correct retarget (see figure \ref{fig:shogunLiveRetargetOption})
+    \end{itemize}
+    \item Add LiveLink Vicon source to Unreal Engine
+    \item Add the sources to the animation blueprint of glassesguy
+    \begin{itemize}
+        \item In the right detail panel make sure "Subject LLF" is the iPhone ("vislabLivelink" usually, see figure \ref{fig:iphonesource}), and in the animgraph part make sure the Live Link Vicon is set to the livelink vicon datasource (see figure \ref{fig:viconsource})
+    \end{itemize}
+    \item Run the jobs.bat in the opened GLEX folder
+    \begin{itemize}
+        \item Make sure the Main Controller terminal window is connected to shogun
+        \item Shogun live not connecting due to socket or port error? Try following commands:
+        \begin{itemize}
+            \item net stop hns
+            \item net start hns
+        \end{itemize}
+        \item If RPC error, close shogun live and open it again (its a networking error)
+    \end{itemize}
+    \item Run the Unreal Engine python code in the opened vscode screen
+    \begin{itemize}
+        \item Run it using the Unreal Engine Python Plugin for VSCode (\url{https://marketplace.visualstudio.com/items?itemName=NilsSoderman.ue-python}). You can also run it through Unreal Engine using the Python options in the project settings to add the path, and then running it through the console.
+        \item Wait for unreal engine to show a pop up and click OK
+    \end{itemize}
+    \item Done!
+\end{enumerate}
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[height=0.6\textwidth]{imgs/openmcp.png}
+    \caption{Opening .mcp for retarget}
+    \label{fig:mcp}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[height=0.6\textwidth]{imgs/subjectsetupretarget.png}
+    \caption{Opening a premade retarget}
+    \label{fig:premadeRetarget}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[height=0.6\textwidth]{imgs/retargetLive.png}
+    \caption{Location of the retarget option in ShogunLive}
+    \label{fig:shogunLiveRetargetOption}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[height=0.4\textwidth]{imgs/iphonesource.png}
+    \caption{Source for Iphone Live Link}
+    \label{fig:iphonesource}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[height=0.6\textwidth]{imgs/viconsource.png}
+    \caption{Source for Vicon Live Link}
+    \label{fig:viconsource}
+\end{figure}
+
+
 \section{Shogun Live \& Post}
 \subsection{Shogun Live ROM}
 In the Live Link Pipeline, retargeting is no longer done in UE5 but in Shogun Post. For effective retargeting, Vicon recommends utilizing a "Range Of Motion" (ROM) motion capture. A ROM provides the most accurate rotations and limitations of all joints. This allows us to accurately assess whether all movements are replicated correctly. We record the ROM in Shogun Live, and then import the resulting mcp file into Shogun Post to perform the retargeting.
@@ -105,6 +190,11 @@ Since Shogun Post 1.10, we can utilize an automatic script to retarget a Vicon S
 
 For other avatars, we have to map mode ourselves from the get go. The ``align skeletons" option in map mode helps us a lot but tweaking is likely needed. Take note that we can only use that option after setting the parts and sides in map mode. After aligning, we auto-create constraints. I have not tested how well this works for the hands, but it seems to perform well for the rest of the body. Similar to the Metahuman retargeting, we validate the retarget gby retargeting over the play range. 
 
+\subsubsection{Retargeting onto metahuman}
+\url{https://www.youtube.com/watch?v=7LplGd6nKG8}
+\textit{Note according to a comment in the youtube video, please make sure of the following:}
+Retargeting to the UE5 Mannequin works well for MaleTall/FemaleTall skeletons but may be less accurate for others. Using UE5's built-in IK retargeting can help adjust animations for different body types. For better results, retarget directly to the desired Metahuman skeleton size. When using Metahuman skeletons, extra bones are frozen and hidden by scripts for performance but can be unfrozen before export if needed. Note that the Quinn Mannequin’s height differs significantly from the Metahuman female tall skeleton, which may make it unsuitable for certain retargeting needs. Choose tools and workflows based on project requirements.
+
 \subsection{Shogun Live Live Link stream}
 In Shogun Live, we select the VSR for the "subject" under the "Properties" tab. Now we have completed the setup on Vicon's side. For a video tutorial, please follow Vicon's next video: \url{https://www.youtube.com/watch?v=7LplGd6nKG8}.
 
@@ -112,6 +202,7 @@ In Shogun Live, we select the VSR for the "subject" under the "Properties" tab. 
 \begin{itemize}
     \item Due to a bug, the Live Link stream in Unreal Engine may not always work when starting your project in UE. To ensure that we still receive the stream in Live Link, we review a take in Shogun Live where the actor is clearly visible. Afterward, we stop the review, and the stream should start working.
     \item Do not give a name with special characters to an actor in Shogun Live or your takes. Otherwise, the mcp file will no longer work in Shogun Post.
+    \item Building without the plugin directly into the root folder of your projects' ``Plugin" folder is not possible.
 \end{itemize}
 
 
@@ -277,15 +368,18 @@ Tips:
 \begin{itemize}
     \item For the ReadyPlayerMe avatars, we append extra information on the download link. If we don't add ``?morphTargets=ARKit", we will not get the ARKit blendshapes.
     \url{https://docs.readyplayer.me/ready-player-me/api-reference/rest-api/avatars/get-3d-avatars}
-    \item For the ReadyPlayerMe avatar, the names of the blendshapes are altered. Therefore we could re-write the retarget template blueprint in UE by making a new "retarget asset". This works, but we would prefer a bit more power over the blendshapes. See section \ref{blendshapescontrol} for more information.
+    \item For the ReadyPlayerMe avatar, the names of the blendshapes are altered. Therefore we could re-write the retarget template blueprint in UE by making a new "retarget asset". This works, but we would prefer a bit more power over the blendshapes. See section \ref{blendshapescontrol} for more information. \textbf{Update: since UE 5.5 we are finally able to rename blendshapes, now we can rename them and let ARKit control them as usual whilst still applying the steps from section \ref{blendshapescontrol} for further articulation.}
 \end{itemize}
+
+\subsection{Downloading Live Link Face Recordings / Live Link Animator Recordings from IPhone}
+Use ShareIT or find another way to transfer files from IPhone to windows. If you are using ShareIT don't forget to connect the PC to the same network as the IPhone (WiFi).
 
 \subsection{Gaining control over blendshapes}\label{blendshapescontrol}
 In our workflow, we rely on the Live Link Face application to transmit blendshapes. While this system serves adequately for some avatars (especially those that share the same blendshape names), it falls short for others. For instance, a smile on a readyplayerme avatar can appear unsettlingly demonic.
 
 To address this, we recognized the need for greater control over the blendshape data we receive. By accessing the "View Options" tab within the Live Link plugin interface (see Figure \ref{fig:livelinkoptions}), we can inspect the incoming data streams.
 
-To exert finer control over this data, we've implemented a C++ and blueprint solution. Initially, we define a remap for the received blendshape data to correspond correctly with our target blendshapes (Figure \ref{fig:datatablesnippet}). This remap structure is defined in C++. Subsequently, we use a blueprint to loop over every value, find the source blendshape value and multiply this by the weight from the datatable. An example of using this weight: reducing the intensity of the smile blendshape by 50\% results in a more natural expression, eliminating the uncanny valley effect.
+To exert finer control over this data, we've implemented a C++ and blueprint solution. Initially, we define a remap for the received blendshape data to correspond correctly with our target blendshapes (Figure \ref{fig:datatablesnippet}). This remap structure is defined in C++. \textbf{Update: since UE 5.5 we are finally able to rename blendshapes, now we can rename them and let ARKit control them as usual whilst still applying the steps from section \ref{blendshapescontrol} for further articulation.} Subsequently, we use a blueprint to loop over every value, find the source blendshape value and multiply this by the weight from the datatable. An example of using this weight: reducing the intensity of the smile blendshape by 50\% results in a more natural expression, eliminating the uncanny valley effect.
 In addition, this method lets us drive multiple blendshapes with a single blendshape. For example, for the readyplayerme avatar, the lower jaw and teeth have separate blendshapes. By letting the jaw drive the teeth as well, we have a more realistic setup.
 
 To facilitate this process, we store these modified blendshapes in a final map in the event graph (target blendshape to value), which we then apply within the anim graph of the blueprint. This application is achieved using the "Modify Curve" node within the anim graph. The reason why we do this in the anim graph with the modify curve node instead of in the event graph with the "Set morph target" node is because the take recorder doesn't spot the changing values from the event graph.
@@ -345,13 +439,39 @@ Important to note is that the timecode is preserved in the CSV and in the level 
 In our experiences using this pipeline, we encountered issues that might be too general or touch on multiple areas of the pipeline. These issues will be discussed in this section.
 
 \subsection{Eye pop out}
-We assigned an actor to a calibration made in a previous recording day. The markers were on the same suit and not moved. The calibration also had a retarget onto an RPM avatar. But for some reason the eyes were popping out of the avatar's sockets (see figure \ref{fig:eyepopout}). This is due to the ``eye bones". Some avatars have these bones in order to control the orientation of the eyes in the same manner we would control other bones in the avatar. We can fix this by redoing the retarget in Shogun Post.
+We assigned an actor to a calibration made in a previous recording day. The markers were on the same suit and not moved. The calibration also had a retarget onto an RPM avatar. But for some reason the eyes were popping out of the avatar's sockets (see figure \ref{fig:eyepopout}). This is due to the ``eye bones". Some avatars have these bones in order to control the orientation of the eyes in the same manner we would control other bones in the avatar. We can fix this by redoing the retarget in Shogun Post and making sure we unscale the target skeleton.
 
 \begin{figure}[hbt!]
     \centering
     \includegraphics[width=\textwidth]{imgs/eye-pop-out.png}
     \caption{The eyes popping out of an avatar}
     \label{fig:eyepopout}
+\end{figure}
+
+\subsection{Help I added a Live Link subject, but no results are showing / no animation on Live Link Subject / no Vicon live stream animation}
+Turn the Live Link component Auto Activate off and on (see figure \ref{fig:liveLinkAutoactivate}).
+
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=\textwidth]{imgs/autoactivate.png}
+    \caption{Turn this on and off in editor mode for Live Link stream}
+    \label{fig:liveLinkAutoactivate}
+\end{figure}
+
+Did you make sure that you enabled the materials to be used with morphtargets (\url{https://forums.unrealengine.com/t/material-needs-morph-support/12355})?
+
+Lastly, it is important that the skeleton has the curves to control the morphtargets. If the curves are missing the animation will not be able to control the morphtargets. When the curves are missing we see figure \ref{fig:noCurves}. What we want to see is figure \ref{fig:curves}. The curve names should be the same as the blendshape names of the avatar. \textit{Tip:} instead of adding them by hand, copy paste them over from an avatar that already has them. If the names need to be changed, then alter them. I want to do this automatically, but I've yet to find a way (keep track of forum post for updates on this: \url{https://forums.unrealengine.com/t/how-to-add-curves-on-a-skeletal-mesh-programatically/2332340}). Lastly, I've asked why we even need curves for morphtargets in the following post: \url{https://forums.unrealengine.com/t/why-do-we-need-animation-curves-on-the-skeleton-for-controlling-morph-targets/2374534}.
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=\textwidth]{imgs/nocurves.png}
+    \caption{No curves on a skeleton.}
+    \label{fig:noCurves}
+\end{figure}
+\begin{figure}[hbt!]
+    \centering
+    \includegraphics[width=\textwidth]{imgs/curves.png}
+    \caption{What we expect, correct curves on the skeleton.}
+    \label{fig:curves}
 \end{figure}
 
 %-------------------------------------------------------------------------------
